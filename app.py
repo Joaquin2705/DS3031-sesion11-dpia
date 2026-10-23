@@ -1,4 +1,4 @@
-# app.py  —  pip install flask ; flask --app app run
+# app.py  —  pip install -r requirements.txt ; FLASK_APP=app python3 -m flask run --port 5050
 import sqlite3
 from flask import Flask, request, jsonify, send_from_directory
 
