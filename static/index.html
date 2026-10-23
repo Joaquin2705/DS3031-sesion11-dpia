@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro — Laboratorio 11a</title>
+<style>
+  :root {
+    --bg: #f5f6fa;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --accent: #4f46e5;
+    --border: #e5e7eb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 2.5rem 1rem;
+  }
+  main { width: 100%; max-width: 480px; }
+  h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+  p.subtitle { color: var(--muted); margin-top: 0; margin-bottom: 1.5rem; font-size: 0.9rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  label { display: block; font-size: 0.85rem; font-weight: 600; margin: 0.75rem 0 0.25rem; }
+  input {
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+  input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  button {
+    margin-top: 1.25rem;
+    width: 100%;
+    padding: 0.65rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:hover { opacity: 0.9; }
+  button.secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  #msg { font-size: 0.85rem; margin-top: 0.75rem; min-height: 1.1em; }
+  #msg.ok { color: #15803d; }
+  #msg.err { color: #b91c1c; }
+  table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.82rem; }
+  th, td { text-align: left; padding: 0.4rem 0.3rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Registro de personas</h1>
+  <p class="subtitle">Laboratorio 11a · DS3031 — formulario mínimo sobre <code>/registro</code> y <code>/registros</code></p>
+
+  <div class="card">
+    <form id="form-registro">
+      <label for="nombres">Nombres</label>
+      <input id="nombres" name="nombres" required>
+
+      <label for="apellidos">Apellidos</label>
+      <input id="apellidos" name="apellidos" required>
+
+      <label for="correo">Correo</label>
+      <input id="correo" name="correo" type="email" required>
+
+      <label for="telefono">Teléfono (opcional)</label>
+      <input id="telefono" name="telefono">
+
+      <button type="submit">Registrar</button>
+      <div id="msg"></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <button type="button" id="btn-listar" class="secondary">Ver registros (GET /registros)</button>
+    <table id="tabla" style="display:none">
+      <thead>
+        <tr><th>ID</th><th>Nombres</th><th>Apellidos</th><th>Correo</th><th>Teléfono</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+  const form = document.getElementById("form-registro");
+  const msg = document.getElementById("msg");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries());
+    msg.textContent = "Enviando...";
+    msg.className = "";
+    try {
+      const res = await fetch("/registro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      msg.textContent = "Registrado correctamente.";
+      msg.className = "ok";
+      form.reset();
+    } catch (err) {
+      msg.textContent = "Error al registrar: " + err.message;
+      msg.className = "err";
+    }
+  });
+
+  document.getElementById("btn-listar").addEventListener("click", async () => {
+    const res = await fetch("/registros");
+    const rows = await res.json();
+    const tbody = document.querySelector("#tabla tbody");
+    tbody.innerHTML = "";
+    for (const r of rows) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4] ?? ""}</td>`;
+      tbody.appendChild(tr);
+    }
+    document.getElementById("tabla").style.display = "table";
+  });
+</script>
+</body>
+</html>
